@@ -55,7 +55,7 @@ jobs:
         uses: Azure/data-factory-deploy-action@v1.2.0
         with:
           resourceGroupName: ${{ vars.RG_NAME }}
-          dataFactoryName: ${{ secrets.ADF_NAME }}
+          dataFactoryName: ${{ secrets.TARGET_ADF_NAME }}
           armTemplateFile: ARMTemplateForFactory.json
           armTemplateParametersFile: ARMTemplateParametersForFactory.json
 
