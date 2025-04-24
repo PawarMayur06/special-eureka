@@ -1,0 +1,61 @@
+name: Dev to Dev
+ 
+on:
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: DEV
+    steps:
+ 
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v3.4.1
+      with:
+        node-version: 18.x
+        
+    - name: install ADF Utilities package
+      run: npm install
+      working-directory: ${{github.workspace}}/
+      
+    - name: Validate
+      run: npm run build validate ${{github.workspace}}/ /subscriptions/${{ secrets.SUBSCRIPTION_ID }}/resourceGroups/${{ vars.RG_NAME }}/providers/Microsoft.DataFactory/factories/${{ secrets.ADF_NAME }}
+      working-directory: ${{github.workspace}}/
+
+ 
+    - name: Validate and Generate ARM template
+      run: npm run build export ${{github.workspace}}/ /subscriptions/${{ secrets.SUBSCRIPTION_ID }}/resourceGroups/${{ vars.RG_NAME }}/providers/Microsoft.DataFactory/factories/${{ secrets.ADF_NAME }} "ExportedArmTemplate" 
+      working-directory: ${{github.workspace}}/
+
+    - name: upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ExportedArmTemplate 
+        path: ${{github.workspace}}/ExportedArmTemplate
+ 
+  release:
+    needs: build
+    runs-on: self-hosted
+    environment: DEV
+    steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ExportedArmTemplate
+
+      - name: Login via Az module
+        uses: Azure/login@v2.2.0
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: data-factory-deploy
+        uses: Azure/data-factory-deploy-action@v1.2.0
+        with:
+          resourceGroupName: ${{ vars.RG_NAME }}
+          dataFactoryName: ${{ secrets.ADF_NAME }}
+          armTemplateFile: ARMTemplateForFactory.json
+          armTemplateParametersFile: ARMTemplateParametersForFactory.json
+
