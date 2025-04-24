@@ -1,0 +1,9 @@
+{
+	"name": "pactiv-poc-adf",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "8d778fbf-e7b1-4d87-882d-83f174548184",
+		"tenantId": "e4e34038-ea1f-4882-b6e8-ccd776459ca0"
+	}
+}
